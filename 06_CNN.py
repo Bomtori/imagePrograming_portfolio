@@ -1,7 +1,6 @@
 """
 06. 슬라이싱한거 CNN 돌려서 학습한거 넣어서 정보 빼기
 """
-
 import numpy as np
 from pathlib import Path
 import cv2
@@ -49,11 +48,15 @@ train_images, test_images, train_labels, test_labels = train_test_split(images, 
 
 # CNN 모델 생성
 model = Sequential()
-model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(300, kernel_size=(3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(500, kernel_size=(3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(64, activation='relu'))
-model.add(Dense(26, activation='softmax'))
+model.add(Dense(labels_onehot.shape[1], activation='softmax'))  # 라벨 개수에 맞게 수정
 
 # 모델 컴파일 및 학습
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -68,9 +71,11 @@ for file in output_files:
 output_images = np.array(output_images) / 255.0
 
 # 예측 수행
-predictions = model.predict(output_images)
+predictions = model.predict(output_images.reshape(-1, 28, 28, 1))
 predicted_labels = label_encoder.inverse_transform(np.argmax(predictions, axis=1))
 
 # 결과 출력
 for i, file in enumerate(output_files):
-    print(f"Image: {file.name}, Predicted Label: {predicted_labels[i]}")
+    print(f"점자 이미지 : {file.name}, 예측 알파벳 : {predicted_labels[i]}")
+
+print("원래 값 : a, d, q, u, e, r")
